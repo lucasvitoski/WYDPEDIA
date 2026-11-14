@@ -10,11 +10,12 @@
 html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 150px);scroll-behavior:smooth}
 *{box-sizing:border-box}
 body{margin:0;background:radial-gradient(ellipse at top,#1d1710 0,var(--bg) 55%);color:var(--txt);font:16px/1.65 Inter,system-ui,sans-serif;min-height:100vh}
-header{text-align:center;padding:44px 16px 18px}
+header{position:relative;text-align:center;padding:74px 16px 18px}
 h1{font:800 clamp(40px,11vw,96px)/1 Cinzel,Georgia,serif;margin:0;color:var(--gold2);text-shadow:0 0 28px rgba(212,167,58,.45);letter-spacing:.04em}
-.sub{margin:.4em 0 0;color:var(--mut)}
+.sub{display:block;width:100%;max-width:none;margin:12px auto 0;color:#c8c0aa;font-size:clamp(15px,2.4vw,18px);line-height:1.5;letter-spacing:.02em;text-align:center}
 .by{color:var(--gold);font:600 15px Cinzel,Georgia,serif;margin-top:6px}
-.manager-launch{margin-top:16px;padding:10px 18px;background:transparent;color:var(--gold2);border:1px solid var(--gold);border-radius:8px;cursor:pointer}
+.manager-launch{position:absolute;top:20px;right:clamp(16px,4vw,48px);padding:10px 18px;background:rgba(21,19,28,.8);color:var(--gold2);border:1px solid var(--gold);border-radius:8px;cursor:pointer;transition:background .2s,border-color .2s}
+.manager-launch:hover,.manager-launch:focus-visible{background:var(--gold);color:#17120a;border-color:var(--gold2);outline:none}
 .manager-panel{max-width:820px;margin:20px auto;padding:20px;background:var(--panel);border:1px solid var(--gold);border-radius:10px}
 .manager-panel.hide{display:none}
 .manager-head{display:flex;justify-content:space-between;align-items:center}
@@ -27,8 +28,14 @@ h1{font:800 clamp(40px,11vw,96px)/1 Cinzel,Georgia,serif;margin:0;color:var(--go
 .manager-body-editor img{cursor:move}
 .manager-body-editor img.is-selected{outline:2px solid var(--gold2)}
 .image-paste-pending{color:var(--mut);font-size:14px}
-.manager-editor-toolbar{display:flex;gap:8px;margin-top:8px}
-.manager-editor-toolbar button{padding:8px 12px;background:transparent;color:var(--gold2);border:1px solid var(--line);border-radius:6px;cursor:pointer}
+.manager-editor-toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:7px;margin-top:8px;padding:10px;background:#100e15;border:1px solid var(--line);border-radius:7px}
+.manager-editor-toolbar button,.manager-editor-toolbar select,.manager-editor-toolbar input{min-height:36px;padding:7px 10px;background:#0e0c12;color:var(--gold2);border:1px solid var(--line);border-radius:6px;cursor:pointer}
+.manager-editor-toolbar button:hover,.manager-editor-toolbar button:focus-visible,.manager-editor-toolbar select:focus-visible{border-color:var(--gold);outline:2px solid rgba(212,167,58,.25)}
+.manager-editor-toolbar button[aria-label]{min-width:38px;font-weight:600}
+.manager-editor-toolbar select{width:auto;max-width:155px;margin:0}
+.manager-editor-toolbar input[type=color]{width:42px;margin:0;padding:3px}
+.manager-editor-divider{width:1px;height:26px;background:var(--line)}
+.manager-editor-help{margin:6px 0 0;color:var(--mut);font-size:13px}
 .content-image{display:block;max-width:100%;max-height:520px;object-fit:contain;margin:14px auto 0;border:1px solid var(--line);border-radius:7px}
 .content-image.align-left{margin-left:0;margin-right:auto}
 .content-image.align-center{margin-left:auto;margin-right:auto}
@@ -84,10 +91,10 @@ footer a{color:var(--gold)}
 </head>
 <body>
 <header>
+<button type="button" class="manager-launch" id="manager-open">⚙ Gerenciar conteúdo</button>
 <h1>WYDPEDIA</h1>
 <p class="sub">Enciclopédia do WYD Rogue pela guilda Vikings</p>
 <div class="by">by G1LG4M3SH</div>
-<button type="button" class="manager-launch" id="manager-open">⚙ Gerenciar conteúdo</button>
 </header>
 <section class="manager-panel hide" id="manager-panel" aria-label="Gerenciar conteúdo">
 <div class="manager-head">
@@ -103,7 +110,27 @@ footer a{color:var(--gold)}
 <select id="manager-category"></select>
 <label id="manager-body-label">Conteúdo</label>
 <div id="manager-body" class="manager-body-editor" contenteditable="true" role="textbox" aria-labelledby="manager-body-label" aria-multiline="true" data-placeholder="Digite o texto. Clique no ponto desejado para colar uma imagem."></div>
-<div class="manager-editor-toolbar"><button type="button" id="manager-list-toggle">Inserir lista</button></div>
+<div class="manager-editor-toolbar" role="toolbar" aria-label="Formatação do conteúdo">
+<button type="button" data-editor-command="bold" aria-label="Negrito" title="Negrito"><b>N</b></button>
+<button type="button" data-editor-command="italic" aria-label="Itálico" title="Itálico"><i>I</i></button>
+<button type="button" data-editor-command="underline" aria-label="Sublinhado" title="Sublinhado"><u>S</u></button>
+<select id="manager-font-family" aria-label="Fonte" title="Fonte">
+<option value="Inter, sans-serif">Inter</option><option value="Georgia, serif">Georgia</option><option value="Cinzel, Georgia, serif">Cinzel</option><option value="Arial, sans-serif">Arial</option>
+</select>
+<select id="manager-font-size" aria-label="Tamanho da fonte" title="Tamanho da fonte">
+<option value="">Tamanho</option><option value="2">Pequeno</option><option value="3">Normal</option><option value="4">Grande</option><option value="5">Título</option><option value="6">Maior</option><option value="7">Enorme</option>
+</select>
+<input type="color" id="manager-text-color" value="#e9e4d6" aria-label="Cor do texto" title="Cor do texto">
+<span class="manager-editor-divider" aria-hidden="true"></span>
+<button type="button" data-editor-command="formatBlock" data-editor-value="H3" title="Subtítulo">Subtítulo</button>
+<button type="button" id="manager-list-toggle">Lista</button>
+<button type="button" id="manager-checklist-toggle">☑ Checklist</button>
+<span class="manager-editor-divider" aria-hidden="true"></span>
+<button type="button" data-editor-command="justifyLeft" aria-label="Alinhar à esquerda" title="Alinhar à esquerda">⇤</button>
+<button type="button" data-editor-command="justifyCenter" aria-label="Centralizar" title="Centralizar">↔</button>
+<button type="button" data-editor-command="justifyRight" aria-label="Alinhar à direita" title="Alinhar à direita">⇥</button>
+</div>
+<p class="manager-editor-help">Selecione o texto e escolha a formatação. Use Checklist para criar itens que podem ser ticados.</p>
 <p class="note">Cole imagens com Ctrl+V no ponto desejado. Clique na imagem para ajustar tamanho e alinhamento; arraste para reposicionar.</p>
 <div id="manager-inline-images" class="hide" aria-label="Opções da imagem selecionada">
 <label for="manager-image-align">Alinhamento<select id="manager-image-align"><option value="left">Esquerda</option><option value="center">Centro</option><option value="right">Direita</option></select></label>
@@ -355,7 +382,83 @@ var store={};
 try{store=JSON.parse(localStorage.getItem("vk-wyd")||"{}")}catch(e){}
 function save(){try{localStorage.setItem("vk-wyd",JSON.stringify(store))}catch(e){}}
 function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;")}
+function escAttr(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;")}
 function isImageData(s){return typeof s==="string"&&/^data:image\/(?:png|jpeg|webp|gif);base64,/i.test(s)}
+function safeColor(value){
+var color=String(value||"").trim();
+if(/^#[0-9a-f]{3}(?:[0-9a-f])?$|^#[0-9a-f]{6}(?:[0-9a-f]{2})?$/i.test(color))return color;
+var rgb=color.match(/^rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})(?:\s*,\s*(?:0|1|0?\.\d+))?\s*\)$/i);
+if(!rgb)return "";
+var channels=rgb.slice(1,4).map(function(channel){var hex=Math.min(255,parseInt(channel,10)).toString(16);return hex.length<2?"0"+hex:hex});
+return "#"+channels.join("");
+}
+function safeFontFamily(value){
+var family=String(value||"").replace(/["']/g,"").replace(/\s+/g," ").trim().toLowerCase();
+var families={"inter, sans-serif":"Inter, sans-serif","georgia, serif":"Georgia, serif","cinzel, georgia, serif":"Cinzel, Georgia, serif","arial, sans-serif":"Arial, sans-serif"};
+return families[family]||"";
+}
+function safeFontSize(value){
+var size=String(value||"").trim().toLowerCase();
+var legacy={"1":"12px","2":"14px","3":"16px","4":"18px","5":"24px","6":"32px","7":"40px"};
+if(legacy[size])return legacy[size];
+var match=size.match(/^(\d{1,2})px$/);
+if(!match)return "";
+var pixels=parseInt(match[1],10);
+return pixels>=10&&pixels<=48?pixels+"px":"";
+}
+function sanitizeRichHTML(source,checklistPrefix){
+var template=document.createElement("template");
+template.innerHTML=String(source||"");
+var listIndex=0,itemIndex=0;
+function render(node,inChecklist,currentList){
+if(node.nodeType===3)return escAttr(node.nodeValue);
+if(node.nodeType!==1)return "";
+var tag=node.tagName.toLowerCase();
+if(tag==="script"||tag==="style"||tag==="iframe"||tag==="object"||tag==="embed"||tag==="input")return "";
+if(tag==="img"){
+var sourceImage=node.getAttribute("src")||"";
+if(!isImageData(sourceImage))return "";
+var className=node.className||"";
+var align=node.getAttribute("data-align")||((className.match(/align-(left|center|right)/)||[])[1])||"center";
+var width=node.getAttribute("data-width")||node.style.width||"100";
+var layout=imageLayout({align:align,width:width});
+return "<img class='content-image align-"+layout.align+"' style='width:"+layout.width+"%' src='"+escAttr(sourceImage)+"' alt='Imagem do conteúdo' data-inline-image='true' data-align='"+layout.align+"' data-width='"+layout.width+"' draggable='true'>";
+}
+if(tag==="ul"||tag==="ol"){
+var checklist=tag==="ul"&&node.getAttribute("data-checklist")==="true";
+var nextList=checklist?listIndex++:currentList;
+var savedPrefix=checklist&&node.getAttribute("data-checklist-key")||"";
+var attrs=checklist?(checklistPrefix===undefined?" data-checklist='true'"+(savedPrefix?" data-checklist-key='"+escAttr(savedPrefix)+"'":""):" class='ck'"):"";
+return "<"+tag+attrs+">"+Array.prototype.map.call(node.childNodes,function(child){return render(child,checklist,nextList)}).join("")+"</"+tag+">";
+}
+if(tag==="li"){
+var children=Array.prototype.map.call(node.childNodes,function(child){return render(child,false,currentList)}).join("");
+if(inChecklist&&checklistPrefix!==undefined){
+var key=node.getAttribute("data-check-key")||checklistPrefix+"-"+currentList+"-"+itemIndex++;
+return "<li><input type='checkbox' id='"+escAttr(key)+"' data-k='"+escAttr(key)+"'"+(store[key]?" checked":"")+"><span>"+children+"</span></li>";
+}
+return "<li"+(inChecklist&&node.getAttribute("data-check-key")?" data-check-key='"+escAttr(node.getAttribute("data-check-key"))+"'":"")+">"+children+"</li>";
+}
+var allowed={p:1,div:1,h3:1,br:1,strong:1,b:1,em:1,i:1,u:1,s:1,del:1,span:1,font:1,blockquote:1};
+if(!allowed[tag])return Array.prototype.map.call(node.childNodes,function(child){return render(child,inChecklist,currentList)}).join("");
+var outputTag=tag==="div"?"p":tag==="font"?"span":tag;
+var styles=[];
+var family=safeFontFamily(node.style.fontFamily||node.getAttribute("face"));
+var size=safeFontSize(node.style.fontSize||node.getAttribute("size"));
+var color=safeColor(node.style.color||node.getAttribute("color"));
+if(family)styles.push("font-family:"+family);
+if(size)styles.push("font-size:"+size);
+if(color)styles.push("color:"+color);
+if(["p","h3","blockquote"].indexOf(outputTag)>-1){
+var align=node.style.textAlign||node.getAttribute("align")||"";
+if(["left","center","right","justify"].indexOf(align)>-1)styles.push("text-align:"+align);
+}
+var styleAttr=styles.length?" style='"+escAttr(styles.join(";"))+"'":"";
+if(outputTag==="br")return "<br>";
+return "<"+outputTag+styleAttr+">"+Array.prototype.map.call(node.childNodes,function(child){return render(child,inChecklist,currentList)}).join("")+"</"+outputTag+">";
+}
+return Array.prototype.map.call(template.content.childNodes,function(node){return render(node,false,-1)}).join("");
+}
 function imageLayout(settings){
 var align=settings&&["left","center","right"].indexOf(settings.align)>-1?settings.align:"center";
 var width=settings?parseInt(settings.width,10):100;
@@ -372,12 +475,13 @@ D.forEach(function(s){
 
 var el=document.createElement("section");el.id=s.id;
 var h="<h2>"+esc(s.t)+"</h2>";
-s.b.forEach(function(x){
+s.b.forEach(function(x,blockIndex){
 if(x[0]=="p")h+="<p>"+esc(x[1])+"</p>";
 else if(x[0]=="h")h+="<h3>"+esc(x[1])+"</h3>";
 else if(x[0]=="n")h+="<p class='note'>"+esc(x[1])+"</p>";
 else if(x[0]=="ul")h+="<ul>"+x[1].map(function(i){return "<li>"+esc(i)+"</li>"}).join("")+"</ul>";
 else if(x[0]=="img")h+=imageMarkup(x[1],x[2],"Imagem no conteúdo");
+else if(x[0]=="rich")h+=sanitizeRichHTML(x[1],s.id+"-r"+blockIndex);
 else if(x[0]=="ck")h+="<ul class='ck'>"+x[2].map(function(i,n){var k=x[1]+n;return "<li><input type='checkbox' id='"+k+"' data-k='"+k+"'"+(store[k]?" checked":"")+"><span>"+esc(i)+"</span></li>"}).join("")+"</ul>";
 else if(x[0]=="tb")h+="<div class='tw'><table><tr>"+x[1].map(function(c){return "<th>"+esc(c)+"</th>"}).join("")+"</tr>"+x[2].map(function(r){return "<tr>"+r.map(function(c){return "<td>"+esc(c)+"</td>"}).join("")+"</tr>"}).join("")+"</table></div>";
 });
@@ -449,6 +553,7 @@ var newCategoryName=document.getElementById("manager-new-category");
 var customContents=managerState.custom;
 var currentImage="";
 var selectedImage=null,pendingImages=0,pasteGeneration=0;
+var savedEditorRange=null;
 
 function persist(){
 try{
@@ -504,12 +609,19 @@ function renderEditor(blocks){
 body.innerHTML="";
 blocks.forEach(function(block){
 if(!Array.isArray(block))return;
-if(block[0]==="ul"||block[0]==="ck"){
+if(block[0]==="rich"){
+body.insertAdjacentHTML("beforeend",sanitizeRichHTML(block[1]));
+}else if(block[0]==="ul"||block[0]==="ck"){
 var ul=document.createElement("ul");
+if(block[0]==="ck"){
+ul.dataset.checklist="true";
+ul.dataset.checklistKey=block[1];
+}
 var values=block[0]==="ul"?block[1]:block[2];
-(values||[]).forEach(function(text){
+(values||[]).forEach(function(text,index){
 var li=document.createElement("li");
 li.textContent=text;
+if(block[0]==="ck")li.dataset.checkKey=block[1]+index;
 ul.appendChild(li);
 });
 body.appendChild(ul);
@@ -536,44 +648,13 @@ paragraph.textContent=block[1]||"";
 body.appendChild(paragraph);
 }
 });
+Array.prototype.forEach.call(body.querySelectorAll("img[data-inline-image='true']"),function(image){image.draggable=true});
 selectEditorImage(null);
 }
 
 function readEditorBlocks(){
-var blocks=[],paragraph="";
-function flushParagraph(){
-if(paragraph.trim())blocks.push(["p",paragraph.trim()]);
-paragraph="";
-}
-function visit(node){
-if(node.nodeType===3){paragraph+=node.nodeValue;return}
-if(node.nodeType!==1)return;
-var tag=node.tagName.toLowerCase();
-if(tag==="img"&&node.dataset.inlineImage==="true"&&isImageData(node.src)){
-flushParagraph();
-var layout=imageLayout({align:node.dataset.align,width:node.dataset.width});
-blocks.push(["img",node.src,layout]);
-return;
-}
-if(tag==="ul"||tag==="ol"){
-flushParagraph();
-var values=[];
-Array.prototype.forEach.call(node.children,function(child){
-if(child.tagName.toLowerCase()==="li"&&child.textContent.trim())values.push(child.textContent.trim());
-});
-if(values.length)blocks.push(["ul",values]);
-return;
-}
-if(tag==="br"){paragraph+="\n";return}
-Array.prototype.forEach.call(node.childNodes,visit);
-if(tag==="p"||tag==="div")flushParagraph();
-}
-Array.prototype.forEach.call(body.childNodes,function(node){
-visit(node);
-if(node.nodeType===1&&(node.tagName==="P"||node.tagName==="DIV"||node.tagName==="UL"||node.tagName==="OL"))flushParagraph();
-});
-flushParagraph();
-return blocks;
+var rich=sanitizeRichHTML(body.innerHTML);
+return rich.trim()?[["rich",rich]]:[];
 }
 
 function processImageFile(file,onSuccess,onError){
@@ -644,9 +725,53 @@ if(event.target.tagName==="IMG"&&event.target.dataset.inlineImage==="true")selec
 else selectEditorImage(null);
 });
 
+function rememberEditorSelection(){
+var selection=window.getSelection();
+if(selection&&selection.rangeCount){
+var range=selection.getRangeAt(0);
+if(body.contains(range.commonAncestorContainer))savedEditorRange=range.cloneRange();
+}
+}
+
+function runEditorCommand(command,value){
+body.focus();
+if(savedEditorRange&&body.contains(savedEditorRange.commonAncestorContainer)){
+var selection=window.getSelection();
+selection.removeAllRanges();
+selection.addRange(savedEditorRange);
+}
+document.execCommand(command,false,value||null);
+rememberEditorSelection();
+}
+
+document.addEventListener("selectionchange",rememberEditorSelection);
+body.addEventListener("keyup",rememberEditorSelection);
+body.addEventListener("mouseup",rememberEditorSelection);
+
+Array.prototype.forEach.call(document.querySelectorAll("[data-editor-command]"),function(button){
+button.onmousedown=function(event){event.preventDefault()};
+button.onclick=function(){
+runEditorCommand(button.dataset.editorCommand,button.dataset.editorValue);
+};
+});
+
+document.getElementById("manager-font-family").onchange=function(){
+runEditorCommand("fontName",this.value);
+};
+document.getElementById("manager-font-size").onchange=function(){
+if(this.value)runEditorCommand("fontSize",this.value);
+this.value="";
+};
+document.getElementById("manager-text-color").onchange=function(){
+runEditorCommand("foreColor",this.value);
+};
+
 document.getElementById("manager-list-toggle").onclick=function(){
 body.focus();
-document.execCommand("insertUnorderedList",false,null);
+runEditorCommand("insertUnorderedList");
+};
+document.getElementById("manager-checklist-toggle").onclick=function(){
+runEditorCommand("insertHTML","<ul data-checklist='true'><li>Item para marcar</li></ul>");
 };
 
 function insertPastedImage(file){
@@ -717,7 +842,7 @@ section.id=item.id;
 var heading=document.createElement("h2");
 heading.textContent=item.t;
 section.appendChild(heading);
-item.b.forEach(function(block){
+item.b.forEach(function(block,blockIndex){
 if(!Array.isArray(block))return;
 if(block[0]==="p"){
 var p=document.createElement("p");
@@ -731,6 +856,10 @@ li.textContent=text;
 ul.appendChild(li);
 });
 section.appendChild(ul);
+}else if(block[0]==="rich"){
+var rich=document.createElement("div");
+rich.innerHTML=sanitizeRichHTML(block[1],item.id+"-r"+blockIndex);
+section.appendChild(rich);
 }else if(block[0]==="img"&&isImageData(block[1])){
 var layout=imageLayout(block[2]);
 var inlineImage=document.createElement("img");
