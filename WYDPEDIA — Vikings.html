@@ -20,6 +20,15 @@ h1{font:800 clamp(40px,11vw,96px)/1 Cinzel,Georgia,serif;margin:0;color:var(--go
 .manager-head{display:flex;justify-content:space-between;align-items:center}
 .manager-panel label{display:block;color:var(--gold2);margin-top:12px}
 .manager-panel input,.manager-panel select,.manager-panel textarea{width:100%;padding:10px;background:#0e0c12;color:var(--txt);border:1px solid var(--line);border-radius:7px;margin-top:5px;font:inherit}
+.manager-body-editor{min-height:180px;max-height:520px;overflow:auto;padding:10px;background:#0e0c12;color:var(--txt);border:1px solid var(--line);border-radius:7px;margin-top:5px;font:inherit;white-space:pre-wrap}
+.manager-body-editor:focus{outline:2px solid var(--gold)}
+.manager-body-editor:empty:before{content:attr(data-placeholder);color:var(--mut);pointer-events:none}
+.manager-body-editor p{max-width:none;margin:0 0 10px}
+.manager-body-editor img{cursor:move}
+.manager-body-editor img.is-selected{outline:2px solid var(--gold2)}
+.image-paste-pending{color:var(--mut);font-size:14px}
+.manager-editor-toolbar{display:flex;gap:8px;margin-top:8px}
+.manager-editor-toolbar button{padding:8px 12px;background:transparent;color:var(--gold2);border:1px solid var(--line);border-radius:6px;cursor:pointer}
 .content-image{display:block;max-width:100%;max-height:520px;object-fit:contain;margin:14px auto 0;border:1px solid var(--line);border-radius:7px}
 .content-image.align-left{margin-left:0;margin-right:auto}
 .content-image.align-center{margin-left:auto;margin-right:auto}
@@ -29,10 +38,10 @@ h1{font:800 clamp(40px,11vw,96px)/1 Cinzel,Georgia,serif;margin:0;color:var(--go
 .manager-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:15px}
 .manager-actions button{padding:10px 14px;background:var(--gold);color:#17120a;border:0;border-radius:7px;cursor:pointer}
 #manager-list{display:grid;gap:8px;margin-top:12px}
-#manager-inline-images{display:grid;gap:8px;margin-top:10px}
-.manager-inline-item{display:flex;align-items:flex-end;flex-wrap:wrap;gap:10px;padding:12px;border:1px solid var(--line);border-radius:7px}
-.manager-inline-item label{flex:1;min-width:120px;margin:0}
-.manager-inline-item button{padding:9px 12px;background:transparent;color:var(--gold2);border:1px solid var(--line);border-radius:6px;cursor:pointer}
+#manager-inline-images{display:flex;align-items:flex-end;flex-wrap:wrap;gap:10px;margin-top:10px;padding:12px;border:1px solid var(--line);border-radius:7px}
+#manager-inline-images.hide{display:none}
+#manager-inline-images label{flex:1;min-width:130px;margin:0}
+#manager-inline-images button{padding:9px 12px;background:transparent;color:var(--gold2);border:1px solid var(--line);border-radius:6px;cursor:pointer}
 .manager-item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px;border:1px solid var(--line);border-radius:7px}
 .manager-item button{padding:7px 10px;margin-left:5px;cursor:pointer;background:transparent;color:var(--gold2);border:1px solid var(--line);border-radius:6px}
 .manager-item .delete{color:#ff9999}
@@ -85,31 +94,38 @@ footer a{color:var(--gold)}
 <h2>Gerenciar conteúdo</h2>
 <button type="button" id="manager-close" aria-label="Fechar">✕</button>
 </div>
+<h3>Adicionar página ou conteúdo</h3>
 <form id="manager-form">
 <input type="hidden" id="manager-id">
 <label for="manager-title">Título</label>
 <input id="manager-title" required placeholder="Título do tutorial">
 <label for="manager-category">Categoria</label>
-<select id="manager-category">
-<option value="iniciante">Iniciante</option>
-<option value="avancado">Avançado</option>
-<option value="crafting">Crafting</option>
-<option value="eventos">Eventos</option>
-</select>
-<label for="manager-body">Conteúdo</label>
-<textarea id="manager-body" rows="8" required placeholder="Digite o conteúdo. Use - no início da linha para criar uma lista."></textarea>
-<p class="note">Cole imagens com Ctrl+V. Para mudar o ponto no texto, coloque o cursor e use “Mover para o cursor”. Ajuste alinhamento e largura abaixo.</p>
-<div id="manager-inline-images" class="hide" aria-label="Ajustes das imagens coladas"></div>
+<select id="manager-category"></select>
+<label id="manager-body-label">Conteúdo</label>
+<div id="manager-body" class="manager-body-editor" contenteditable="true" role="textbox" aria-labelledby="manager-body-label" aria-multiline="true" data-placeholder="Digite o texto. Clique no ponto desejado para colar uma imagem."></div>
+<div class="manager-editor-toolbar"><button type="button" id="manager-list-toggle">Inserir lista</button></div>
+<p class="note">Cole imagens com Ctrl+V no ponto desejado. Clique na imagem para ajustar tamanho e alinhamento; arraste para reposicionar.</p>
+<div id="manager-inline-images" class="hide" aria-label="Opções da imagem selecionada">
+<label for="manager-image-align">Alinhamento<select id="manager-image-align"><option value="left">Esquerda</option><option value="center">Centro</option><option value="right">Direita</option></select></label>
+<label for="manager-image-width">Largura<select id="manager-image-width"><option value="25">25%</option><option value="50">50%</option><option value="75">75%</option><option value="100">100%</option></select></label>
+<button type="button" id="manager-inline-image-remove">Remover imagem selecionada</button>
+</div>
 <label for="manager-image">Imagem do item (opcional)</label>
 <input type="file" id="manager-image" accept="image/*">
 <img id="manager-image-preview" class="manager-image-preview hide" alt="Prévia da imagem anexada">
 <button type="button" id="manager-image-remove" class="manager-image-remove hide">Remover imagem</button>
 <div class="manager-actions">
-<button type="submit" id="manager-save">Adicionar conteúdo</button>
-<button type="button" id="manager-cancel" class="hide">Cancelar</button>
+<button type="submit" id="manager-save">Adicionar página</button>
+<button type="button" id="manager-cancel" class="hide">Cancelar edição</button>
 <button type="button" id="manager-export">Exportar HTML atualizado</button>
 <button type="button" id="manager-publish">Preparar envio ao GitHub</button>
 </div>
+</form>
+<h3>Adicionar categoria</h3>
+<form id="manager-category-form">
+<label for="manager-new-category">Nome da categoria</label>
+<input id="manager-new-category" required placeholder="Ex.: Guias de classe">
+<div class="manager-actions"><button type="submit">Criar categoria</button></div>
 </form>
 <h3>Conteúdos da página</h3>
 <div id="manager-list"></div>
@@ -315,7 +331,7 @@ var D=[
 ["n","As Medalhas Roxas, Douradas e Vermelhas são craftadas no NPC Exchange."]
 ]}
 ];
-var managerState={custom:[],edits:{},removed:[],disabledContents:[],disabledCategories:[]};
+var managerState={custom:[],edits:{},removed:[],disabledContents:[],disabledCategories:[],categories:[]};
 try{
 var savedManager=localStorage.getItem("vk-wyd-manager");
 var embeddedManager=window.__WYDPEDIA_EMBEDDED_MANAGER__;
@@ -325,14 +341,15 @@ else if(embeddedManager&&typeof embeddedManager==="object")managerState=embedded
 else if(savedCustom!==null)managerState.custom=JSON.parse(savedCustom);
 else if(Array.isArray(window.__WYDPEDIA_EMBEDDED_CUSTOM__))managerState.custom=window.__WYDPEDIA_EMBEDDED_CUSTOM__;
 }catch(e){
-managerState={custom:[],edits:{},removed:[],disabledContents:[],disabledCategories:[]};
+managerState={custom:[],edits:{},removed:[],disabledContents:[],disabledCategories:[],categories:[]};
 }
-if(!managerState||typeof managerState!=="object")managerState={custom:[],edits:{},removed:[],disabledContents:[],disabledCategories:[]};
+if(!managerState||typeof managerState!=="object")managerState={custom:[],edits:{},removed:[],disabledContents:[],disabledCategories:[],categories:[]};
 if(!Array.isArray(managerState.custom))managerState.custom=[];
 if(!managerState.edits||typeof managerState.edits!=="object")managerState.edits={};
 if(!Array.isArray(managerState.removed))managerState.removed=[];
 if(!Array.isArray(managerState.disabledContents))managerState.disabledContents=[];
 if(!Array.isArray(managerState.disabledCategories))managerState.disabledCategories=[];
+if(!Array.isArray(managerState.categories))managerState.categories=[];
 D=D.filter(function(item){return managerState.removed.indexOf(item.id)<0}).map(function(item){return managerState.edits[item.id]||item});
 var store={};
 try{store=JSON.parse(localStorage.getItem("vk-wyd")||"{}")}catch(e){}
@@ -377,6 +394,9 @@ main.appendChild(el);
 main.addEventListener("change",function(e){var k=e.target.getAttribute("data-k");if(k){store[k]=e.target.checked;save()}});
 var q=document.getElementById("q"),em=document.getElementById("empty");
 var CATS=[["todos","Todos"],["iniciante","Iniciante"],["avancado","Avançado"],["crafting","Crafting"],["eventos","Eventos"]];
+managerState.categories.forEach(function(category){
+if(category&&typeof category.id==="string"&&category.id&&typeof category.name==="string"&&category.name&&!CATS.some(function(existing){return existing[0]===category.id}))CATS.push([category.id,category.name]);
+});
 var MAP={dicas:["iniciante"],arch:["iniciante"],drops:["iniciante"],destrave:["iniciante","avancado"],cele:["iniciante"],soul:["iniciante"],sub:["iniciante","avancado"],zona:["avancado"],pista:["avancado"],reset:["avancado"],arcana:["avancado"],d200:["avancado"],capa:["avancado"],refin:["avancado"],exch:["avancado"],subof:["avancado"],mont:["crafting"],missao:["crafting"],bau:["crafting"],nucleo:["crafting"],cinto:["crafting"],brinco:["crafting"],caca:["crafting"],catal:["crafting"],noatun:["eventos"]};
 Object.keys(managerState.edits).forEach(function(id){if(MAP[id])MAP[id]=[managerState.edits[id].cat]});
 var cur="todos",cats=document.getElementById("cats");
@@ -415,15 +435,20 @@ var body=document.getElementById("manager-body");
 var imageInput=document.getElementById("manager-image");
 var imagePreview=document.getElementById("manager-image-preview");
 var imageRemove=document.getElementById("manager-image-remove");
+var imageAlign=document.getElementById("manager-image-align");
+var imageWidth=document.getElementById("manager-image-width");
+var inlineImageRemove=document.getElementById("manager-inline-image-remove");
 var hiddenId=document.getElementById("manager-id");
 var saveBtn=document.getElementById("manager-save");
 var cancelBtn=document.getElementById("manager-cancel");
 var list=document.getElementById("manager-list");
 var categoryList=document.getElementById("manager-categories");
 var inlineImageControls=document.getElementById("manager-inline-images");
+var categoryForm=document.getElementById("manager-category-form");
+var newCategoryName=document.getElementById("manager-new-category");
 var customContents=managerState.custom;
 var currentImage="";
-var inlineImages={},inlineImageSettings={},inlineImageId=0,pendingImages=0,pasteGeneration=0;
+var selectedImage=null,pendingImages=0,pasteGeneration=0;
 
 function persist(){
 try{
@@ -440,13 +465,11 @@ function resetForm(){
 form.reset();
 hiddenId.value="";
 setImage("");
-inlineImages={};
-inlineImageSettings={};
-inlineImageId=0;
+body.innerHTML="";
+selectEditorImage(null);
 pendingImages=0;
 pasteGeneration++;
-renderInlineImages();
-saveBtn.textContent="Adicionar conteúdo";
+saveBtn.textContent="Adicionar página";
 cancelBtn.classList.add("hide");
 }
 
@@ -457,78 +480,100 @@ imagePreview.classList.toggle("hide",!currentImage);
 imageRemove.classList.toggle("hide",!currentImage);
 }
 
-function makeInlineImageToken(data,settings){
-var token="[[imagem:"+(++inlineImageId)+"]]";
-inlineImages[token]=data;
-var layout=imageLayout(settings);
-inlineImageSettings[token]={align:layout.align,width:layout.width};
-return token;
+function selectEditorImage(image){
+if(selectedImage)selectedImage.classList.remove("is-selected");
+selectedImage=image&&body.contains(image)?image:null;
+inlineImageControls.classList.toggle("hide",!selectedImage);
+if(!selectedImage)return;
+selectedImage.classList.add("is-selected");
+var layout=imageLayout({align:selectedImage.dataset.align,width:selectedImage.dataset.width});
+imageAlign.value=layout.align;
+imageWidth.value=layout.width;
 }
 
-function moveInlineImage(token){
-var value=body.value,from=value.indexOf(token);
-if(from<0){
-alert("Não foi possível localizar o marcador da imagem no texto.");
+function applyEditorImageLayout(){
+if(!selectedImage)return;
+var layout=imageLayout({align:imageAlign.value,width:imageWidth.value});
+selectedImage.dataset.align=layout.align;
+selectedImage.dataset.width=layout.width;
+selectedImage.className="content-image align-"+layout.align+" is-selected";
+selectedImage.style.width=layout.width+"%";
+}
+
+function renderEditor(blocks){
+body.innerHTML="";
+blocks.forEach(function(block){
+if(!Array.isArray(block))return;
+if(block[0]==="ul"||block[0]==="ck"){
+var ul=document.createElement("ul");
+var values=block[0]==="ul"?block[1]:block[2];
+(values||[]).forEach(function(text){
+var li=document.createElement("li");
+li.textContent=text;
+ul.appendChild(li);
+});
+body.appendChild(ul);
+}else if(block[0]==="img"&&isImageData(block[1])){
+var layout=imageLayout(block[2]);
+var image=document.createElement("img");
+image.className="content-image align-"+layout.align;
+image.style.width=layout.width+"%";
+image.src=block[1];
+image.alt="Imagem do conteúdo";
+image.dataset.inlineImage="true";
+image.dataset.align=layout.align;
+image.dataset.width=layout.width;
+image.draggable=true;
+body.appendChild(image);
+}else if(block[0]==="tb"){
+var tableText=[block[1].join(" | ")].concat(block[2].map(function(row){return row.join(" | ")})).join("\n");
+var tableParagraph=document.createElement("p");
+tableParagraph.textContent=tableText;
+body.appendChild(tableParagraph);
+}else{
+var paragraph=document.createElement("p");
+paragraph.textContent=block[1]||"";
+body.appendChild(paragraph);
+}
+});
+selectEditorImage(null);
+}
+
+function readEditorBlocks(){
+var blocks=[],paragraph="";
+function flushParagraph(){
+if(paragraph.trim())blocks.push(["p",paragraph.trim()]);
+paragraph="";
+}
+function visit(node){
+if(node.nodeType===3){paragraph+=node.nodeValue;return}
+if(node.nodeType!==1)return;
+var tag=node.tagName.toLowerCase();
+if(tag==="img"&&node.dataset.inlineImage==="true"&&isImageData(node.src)){
+flushParagraph();
+var layout=imageLayout({align:node.dataset.align,width:node.dataset.width});
+blocks.push(["img",node.src,layout]);
 return;
 }
-var caret=body.selectionStart;
-if(caret>=from+token.length)caret-=token.length;
-else if(caret>from)caret=from;
-value=value.slice(0,from)+value.slice(from+token.length);
-caret=Math.max(0,Math.min(caret,value.length));
-var before=caret>0&&value.charAt(caret-1)!=="\n"?"\n\n":"";
-var after=caret<value.length&&value.charAt(caret)!=="\n"?"\n\n":"";
-var insertion=before+token+after;
-body.value=value.slice(0,caret)+insertion+value.slice(caret);
-var next=caret+insertion.length;
-body.focus();
-body.setSelectionRange(next,next);
+if(tag==="ul"||tag==="ol"){
+flushParagraph();
+var values=[];
+Array.prototype.forEach.call(node.children,function(child){
+if(child.tagName.toLowerCase()==="li"&&child.textContent.trim())values.push(child.textContent.trim());
+});
+if(values.length)blocks.push(["ul",values]);
+return;
 }
-
-function renderInlineImages(){
-inlineImageControls.innerHTML="";
-var tokens=Object.keys(inlineImages);
-inlineImageControls.classList.toggle("hide",!tokens.length);
-tokens.forEach(function(token,index){
-var settings=inlineImageSettings[token]||{align:"center",width:100};
-var row=document.createElement("div");
-row.className="manager-inline-item";
-var name=document.createElement("strong");
-name.textContent="Imagem "+(index+1);
-var alignLabel=document.createElement("label");
-alignLabel.textContent="Alinhamento";
-var alignSelect=document.createElement("select");
-[["left","Esquerda"],["center","Centro"],["right","Direita"]].forEach(function(option){
-var entry=document.createElement("option");
-entry.value=option[0];
-entry.textContent=option[1];
-alignSelect.appendChild(entry);
+if(tag==="br"){paragraph+="\n";return}
+Array.prototype.forEach.call(node.childNodes,visit);
+if(tag==="p"||tag==="div")flushParagraph();
+}
+Array.prototype.forEach.call(body.childNodes,function(node){
+visit(node);
+if(node.nodeType===1&&(node.tagName==="P"||node.tagName==="DIV"||node.tagName==="UL"||node.tagName==="OL"))flushParagraph();
 });
-alignSelect.value=settings.align;
-alignSelect.onchange=function(){settings.align=alignSelect.value};
-alignLabel.appendChild(alignSelect);
-var widthLabel=document.createElement("label");
-widthLabel.textContent="Largura";
-var widthSelect=document.createElement("select");
-[[25,"25%"],[50,"50%"],[75,"75%"],[100,"100%"]].forEach(function(option){
-var entry=document.createElement("option");
-entry.value=option[0];
-entry.textContent=option[1];
-widthSelect.appendChild(entry);
-});
-widthSelect.value=settings.width;
-widthSelect.onchange=function(){settings.width=Number(widthSelect.value)};
-widthLabel.appendChild(widthSelect);
-var move=document.createElement("button");
-move.type="button";
-move.textContent="Mover para o cursor";
-move.onclick=function(){moveInlineImage(token)};
-row.appendChild(name);
-row.appendChild(alignLabel);
-row.appendChild(widthLabel);
-row.appendChild(move);
-inlineImageControls.appendChild(row);
-});
+flushParagraph();
+return blocks;
 }
 
 function processImageFile(file,onSuccess,onError){
@@ -585,24 +630,67 @@ imageInput.value="";
 setImage("");
 };
 
+imageAlign.onchange=applyEditorImageLayout;
+imageWidth.onchange=applyEditorImageLayout;
+inlineImageRemove.onclick=function(){
+if(!selectedImage)return;
+selectedImage.remove();
+selectEditorImage(null);
+body.focus();
+};
+
+body.addEventListener("click",function(event){
+if(event.target.tagName==="IMG"&&event.target.dataset.inlineImage==="true")selectEditorImage(event.target);
+else selectEditorImage(null);
+});
+
+document.getElementById("manager-list-toggle").onclick=function(){
+body.focus();
+document.execCommand("insertUnorderedList",false,null);
+};
+
 function insertPastedImage(file){
-var token="[[imagem:"+(++inlineImageId)+"]]";
-var start=body.selectionStart,end=body.selectionEnd;
-var before=start>0&&body.value.charAt(start-1)!=="\n"?"\n\n":"";
-var after=end<body.value.length&&body.value.charAt(end)!=="\n"?"\n\n":"";
-body.setRangeText(before+token+after,start,end,"end");
+var selection=window.getSelection();
+var range=selection&&selection.rangeCount?selection.getRangeAt(0):null;
+if(!range||!body.contains(range.commonAncestorContainer)){
+range=document.createRange();
+range.selectNodeContents(body);
+range.collapse(false);
+}
+range.deleteContents();
+var placeholder=document.createElement("span");
+placeholder.className="image-paste-pending";
+placeholder.contentEditable="false";
+placeholder.textContent="Preparando imagem...";
+range.insertNode(placeholder);
+var caretRange=document.createRange();
+caretRange.setStartAfter(placeholder);
+caretRange.collapse(true);
+if(selection){
+selection.removeAllRanges();
+selection.addRange(caretRange);
+}
 var generation=pasteGeneration;
 pendingImages++;
 processImageFile(file,function(data){
 if(generation!==pasteGeneration)return;
+if(!placeholder.parentNode){pendingImages--;return}
 var layout=imageLayout();
-inlineImages[token]=data;
-inlineImageSettings[token]={align:layout.align,width:layout.width};
+var image=document.createElement("img");
+image.className="content-image align-"+layout.align;
+image.style.width=layout.width+"%";
+image.src=data;
+image.alt="Imagem do conteúdo";
+image.dataset.inlineImage="true";
+image.dataset.align=layout.align;
+image.dataset.width=layout.width;
+image.draggable=true;
+placeholder.parentNode.replaceChild(image,placeholder);
 pendingImages--;
-renderInlineImages();
+selectEditorImage(image);
 },function(){
 if(generation!==pasteGeneration)return;
-body.value=body.value.replace(token,"");
+placeholder.remove();
 pendingImages--;
 });
 }
@@ -692,21 +780,11 @@ edit.textContent="Editar";
 edit.onclick=function(){
 pasteGeneration++;
 pendingImages=0;
-inlineImages={};
-inlineImageSettings={};
-inlineImageId=0;
 hiddenId.value=item.id;
 title.value=item.t;
 category.value=item.cat||(MAP[item.id]||[])[0]||"iniciante";
 setImage(item.img);
-body.value=(item.b||[]).map(function(block){
-if(block[0]==="ul")return block[1].map(function(text){return "- "+text}).join("\n");
-if(block[0]==="ck")return block[2].map(function(text){return "- "+text}).join("\n");
-if(block[0]==="tb")return [block[1].join(" | ")].concat(block[2].map(function(row){return row.join(" | ")})).join("\n");
-if(block[0]==="img"&&isImageData(block[1]))return makeInlineImageToken(block[1],block[2]);
-return block[1];
-}).join("\n\n");
-renderInlineImages();
+renderEditor(item.b||[]);
 saveBtn.textContent="Salvar alterações";
 cancelBtn.classList.remove("hide");
 title.focus();
@@ -741,6 +819,7 @@ var row=document.createElement("div");
 row.className="manager-item";
 var name=document.createElement("strong");
 name.textContent=category[1];
+var actions=document.createElement("div");
 var toggle=document.createElement("button");
 toggle.type="button";
 toggle.className="toggle";
@@ -752,11 +831,119 @@ if(index>-1)managerState.disabledCategories.splice(index,1);
 else managerState.disabledCategories.push(category[0]);
 if(persist())location.reload();
 };
+actions.appendChild(toggle);
+var customCategory=managerState.categories.find(function(item){return item.id===category[0]});
+if(customCategory){
+var edit=document.createElement("button");
+edit.type="button";
+edit.textContent="Renomear";
+edit.onclick=function(){
+var nextName=prompt("Novo nome da categoria:",customCategory.name);
+if(nextName===null)return;
+nextName=nextName.trim();
+if(!nextName){alert("Informe um nome para a categoria.");return}
+if(CATS.some(function(existing){return existing[0]!==category[0]&&norm(existing[1])===norm(nextName)})){
+alert("Já existe uma categoria com esse nome.");
+return;
+}
+var previousName=customCategory.name;
+customCategory.name=nextName;
+category[1]=nextName;
+renderCategoryOptions(category[0]);
+renderCategoryList();
+renderCats();
+renderChips();
+if(!persist()){
+customCategory.name=previousName;
+category[1]=previousName;
+renderCategoryOptions(category[0]);
+renderCategoryList();
+renderCats();
+renderChips();
+}
+};
+var remove=document.createElement("button");
+remove.type="button";
+remove.textContent="Remover";
+remove.className="delete";
+remove.onclick=function(){
+if(D.some(function(item){return (MAP[item.id]||[]).indexOf(category[0])>-1})){
+alert("Mova ou remova primeiro as páginas que usam esta categoria.");
+return;
+}
+if(!confirm("Deseja remover a categoria \""+customCategory.name+"\"?"))return;
+var categoryIndex=managerState.categories.indexOf(customCategory);
+var mapIndex=CATS.indexOf(category);
+var disabledIndex=managerState.disabledCategories.indexOf(category[0]);
+var wasCurrent=cur===category[0];
+managerState.categories.splice(categoryIndex,1);
+CATS.splice(mapIndex,1);
+if(disabledIndex>-1)managerState.disabledCategories.splice(disabledIndex,1);
+if(wasCurrent)cur="todos";
+renderCategoryOptions();
+renderCategoryList();
+renderCats();
+renderChips();
+if(!persist()){
+managerState.categories.splice(categoryIndex,0,customCategory);
+CATS.splice(mapIndex,0,category);
+if(disabledIndex>-1)managerState.disabledCategories.splice(disabledIndex,0,category[0]);
+if(wasCurrent)cur=category[0];
+renderCategoryOptions();
+renderCategoryList();
+renderCats();
+renderChips();
+}
+};
+actions.appendChild(edit);
+actions.appendChild(remove);
+}
 row.appendChild(name);
-row.appendChild(toggle);
+row.appendChild(actions);
 categoryList.appendChild(row);
 });
 }
+
+function renderCategoryOptions(selected){
+category.innerHTML="";
+CATS.filter(function(item){return item[0]!=="todos"}).forEach(function(item){
+var option=document.createElement("option");
+option.value=item[0];
+option.textContent=item[1];
+category.appendChild(option);
+});
+if(selected)category.value=selected;
+if(!category.value&&category.options.length)category.selectedIndex=0;
+}
+
+categoryForm.onsubmit=function(e){
+e.preventDefault();
+var name=newCategoryName.value.trim();
+if(!name){alert("Informe um nome para a categoria.");return}
+if(CATS.some(function(item){return norm(item[1])===norm(name)})){
+alert("Já existe uma categoria com esse nome.");
+return;
+}
+var baseId=norm(name).replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")||"categoria";
+var id=baseId,suffix=2;
+while(CATS.some(function(item){return item[0]===id}))id=baseId+"-"+suffix++;
+var newCategory={id:id,name:name};
+managerState.categories.push(newCategory);
+CATS.push([id,name]);
+renderCategoryOptions(id);
+renderCategoryList();
+renderCats();
+renderChips();
+if(persist())categoryForm.reset();
+else{
+managerState.categories.pop();
+CATS.pop();
+renderCategoryOptions();
+renderCategoryList();
+renderCats();
+renderChips();
+}
+};
 
 document.getElementById("manager-open").onclick=function(){
 panel.classList.toggle("hide");
@@ -768,39 +955,17 @@ cancelBtn.onclick=resetForm;
 
 form.onsubmit=function(e){
 e.preventDefault();
-var t=title.value.trim(),cat=category.value,txt=body.value.trim();
-if(!t||!txt)return;
+var t=title.value.trim(),cat=category.value;
+if(!t)return;
 if(pendingImages){
 alert("Aguarde o processamento da imagem colada antes de salvar.");
 return;
 }
-var blocks=[],paragraph=[],items=[];
-function flushParagraph(){
-if(paragraph.length){blocks.push(["p",paragraph.join("\n").trim()]);paragraph=[]}
+var blocks=readEditorBlocks();
+if(!blocks.length){
+alert("Adicione texto, uma lista ou uma imagem ao conteúdo.");
+return;
 }
-function flushItems(){
-if(items.length){blocks.push(["ul",items]);items=[]}
-}
-txt.split(/\r?\n/).forEach(function(line){
-var trimmed=line.trim(),imageMatch=trimmed.match(/^\[\[imagem:\d+\]\]$/),itemMatch=trimmed.match(/^[-*]\s+(.+)$/);
-if(imageMatch){
-flushItems();
-flushParagraph();
-if(inlineImages[trimmed])blocks.push(["img",inlineImages[trimmed],inlineImageSettings[trimmed]||{align:"center",width:100}]);
-else paragraph.push(line);
-}else if(itemMatch){
-flushParagraph();
-items.push(itemMatch[1]);
-}else if(!trimmed){
-flushItems();
-flushParagraph();
-}else{
-flushItems();
-paragraph.push(line);
-}
-});
-flushItems();
-flushParagraph();
 var id=hiddenId.value;
 if(id){
 var index=customContents.findIndex(function(item){return item.id===id});
@@ -864,6 +1029,7 @@ alert("O HTML foi baixado, mas o navegador bloqueou a aba do GitHub. Permita pop
 }
 };
 
+renderCategoryOptions();
 customContents.forEach(addArticle);
 renderCats();
 renderChips();
