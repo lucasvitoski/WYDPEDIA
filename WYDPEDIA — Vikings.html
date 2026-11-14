@@ -24,6 +24,8 @@ h1{font:800 clamp(40px,11vw,96px)/1 Cinzel,Georgia,serif;margin:0;color:var(--go
 .manager-image-preview{display:block;max-width:100%;max-height:220px;object-fit:contain;margin-top:10px;border:1px solid var(--line);border-radius:7px}
 .manager-image-remove{margin-top:8px;padding:7px 10px;background:transparent;color:#ff9999;border:1px solid var(--line);border-radius:6px;cursor:pointer}
 .manager-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:15px}
+.manager-actions button.publish{background:#d4a73a;color:#17120a;font-weight:700}
+#publish-status{margin-top:10px;color:var(--mut);font-size:14px;overflow-wrap:anywhere}
 .manager-actions button{padding:10px 14px;background:var(--gold);color:#17120a;border:0;border-radius:7px;cursor:pointer}
 #manager-list{display:grid;gap:8px;margin-top:12px}
 .manager-item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px;border:1px solid var(--line);border-radius:7px}
@@ -99,10 +101,12 @@ footer a{color:var(--gold)}
 <button type="submit" id="manager-save">Adicionar conteúdo</button>
 <button type="button" id="manager-cancel" class="hide">Cancelar</button>
 <button type="button" id="manager-export">Exportar HTML atualizado</button>
+<button type="button" id="manager-publish" class="publish">Publicar no site</button>
 </div>
 </form>
 <h3>Conteúdos da página</h3>
 <div id="manager-list"></div>
+<div id="publish-status" role="status">As alterações ainda não foram publicadas.</div>
 <h3>Categorias da página</h3>
 <div id="manager-categories"></div>
 </section>
@@ -310,8 +314,8 @@ try{
 var savedManager=localStorage.getItem("vk-wyd-manager");
 var embeddedManager=window.__WYDPEDIA_EMBEDDED_MANAGER__;
 var savedCustom=localStorage.getItem("vk-wyd-custom");
-if(savedManager!==null)managerState=JSON.parse(savedManager);
-else if(embeddedManager&&typeof embeddedManager==="object")managerState=embeddedManager;
+if(embeddedManager&&typeof embeddedManager==="object")managerState=embeddedManager;
+else if(savedManager!==null)managerState=JSON.parse(savedManager);
 else if(savedCustom!==null)managerState.custom=JSON.parse(savedCustom);
 else if(Array.isArray(window.__WYDPEDIA_EMBEDDED_CUSTOM__))managerState.custom=window.__WYDPEDIA_EMBEDDED_CUSTOM__;
 }catch(e){
@@ -452,8 +456,8 @@ canvas.height=Math.max(1,Math.round(source.height*scale));
 canvas.getContext("2d").drawImage(source,0,0,canvas.width,canvas.height);
 var data=canvas.toDataURL("image/webp",0.86);
 if(data.indexOf("data:image/webp,")!==0)data=canvas.toDataURL("image/jpeg",0.86);
-if(data.length>1500000){
-alert("A imagem ficou muito grande. Tente usar um print menor.");
+if(data.length>450000){
+alert("A imagem otimizada ficou muito grande para publicação. Tente usar um print menor.");
 imageInput.value="";
 return;
 }
@@ -608,15 +612,17 @@ customContents.push({id:id,t:t,cat:cat,b:blocks,img:currentImage});
 if(persist())location.reload();
 };
 
-document.getElementById("manager-export").onclick=function(){
+function buildPublishedHtml(){
 var source="<!DOCTYPE html>\n"+document.documentElement.outerHTML;
 var payload="<script>window.__WYDPEDIA_EMBEDDED_MANAGER__="+JSON.stringify(managerState).replace(/</g,"\\u003c")+";<\/script>\n";
 var scriptIndex=source.indexOf("<script>");
-if(scriptIndex<0){
-alert("Não foi possível preparar a exportação.");
-return;
+if(scriptIndex<0)throw new Error("Não foi possível preparar o HTML.");
+return source.slice(0,scriptIndex)+payload+source.slice(scriptIndex);
 }
-source=source.slice(0,scriptIndex)+payload+source.slice(scriptIndex);
+
+document.getElementById("manager-export").onclick=function(){
+try{
+var source=buildPublishedHtml();
 var blob=new Blob([source],{type:"text/html;charset=utf-8"});
 var url=URL.createObjectURL(blob);
 var a=document.createElement("a");
@@ -626,6 +632,43 @@ document.body.appendChild(a);
 a.click();
 a.remove();
 setTimeout(function(){URL.revokeObjectURL(url)},1500);
+}catch(error){alert(error.message)}
+};
+
+document.getElementById("manager-publish").onclick=async function(){
+var button=this;
+var status=document.getElementById("publish-status");
+var key=sessionStorage.getItem("wydpedia-admin-key");
+if(!key){
+key=prompt("Digite sua senha administrativa (ADMIN_KEY) para publicar:");
+if(!key)return;
+}
+button.disabled=true;
+button.textContent="Publicando...";
+status.textContent="Enviando alterações ao GitHub...";
+try{
+var html=buildPublishedHtml();
+var result=await fetch("https://wydpedia.lucascesarvitoski.workers.dev/publish",{
+method:"POST",
+headers:{"Content-Type":"application/json","X-Admin-Key":key},
+body:JSON.stringify({content:html})
+});
+var data=await result.json();
+if(result.status===401){
+sessionStorage.removeItem("wydpedia-admin-key");
+throw new Error("Senha administrativa incorreta. Tente novamente.");
+}
+if(!result.ok||!data.success)throw new Error(data.error||"Não foi possível publicar.");
+sessionStorage.setItem("wydpedia-admin-key",key);
+status.textContent="Publicado com sucesso! Commit: "+data.commit.slice(0,7);
+alert("WYDPEDIA publicada com sucesso no GitHub!");
+}catch(error){
+status.textContent="Falha na publicação: "+error.message;
+alert(error.message);
+}finally{
+button.disabled=false;
+button.textContent="Publicar no site";
+}
 };
 
 customContents.forEach(addArticle);
