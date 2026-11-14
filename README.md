@@ -28,4 +28,4 @@ Construir uma base de conhecimento colaborativa e continuamente atualizada, faci
 
 A WYDPEDIA é um projeto independente, desenvolvido com foco na comunidade de jogadores de WYD. Seu conteúdo poderá receber atualizações, melhorias e novas funcionalidades conforme a evolução do projeto.
 
-**WYDPEDIA — O conhecimento do mundo de WYD reunido em um só lugar.**
+**WYDPEDIA — O conhecimento do mundo de WYD reunido em um só lugar. BY G1LG4M3SH ** 
